@@ -8,6 +8,8 @@
 MemoryCaptures/
 Recordings/
 
+.utmp/
+
 .vs/
 .vscode/
 .idea/
