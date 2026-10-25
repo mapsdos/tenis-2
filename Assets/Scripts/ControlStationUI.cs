@@ -1,115 +1,118 @@
 ﻿
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class ControlStationUI : MonoBehaviour
 {
     [Header("Generador de pelotas")]
     public BallGeneratorScript ballGenerator;
 
-    [Header("Controles UI")]
+    [Header("Botones de control")]
     public Button startButton;
     public Button endButton;
+
+    [Header("Botones de dificultad")]
     public Button easyButton;
     public Button normalButton;
     public Button hardButton;
-    public Slider originSlider;
 
-    [Header("Etiquetas de los orígenes")]
-    public TMP_Text origin1LabelGenerador;
-    public TMP_Text origin2LabelGenerador;
-    public TMP_Text origin3LabelGenerador;
-
-    [Header("Colores")]
-    public Color selectedColor = new Color32(0, 191, 255, 255); // Azul
-    public Color normalColor = new Color32(255, 255, 255, 255); // Blanco
+    [Header("Sliders")]
+    public Slider generatorsSlider;
+    public Slider frequencySlider;
 
     private void Start()
     {
+        if (ballGenerator == null)
+        {
+            Debug.LogError(
+                "ControlStationUI: falta asignar BallGeneratorScript."
+            );
+            return;
+        }
+
+        // Conecta los sliders con el generador.
+        if (generatorsSlider != null)
+        {
+            generatorsSlider.onValueChanged.AddListener(
+                ballGenerator.SetNumberOfActiveGenerators
+            );
+        }
+
+        if (frequencySlider != null)
+        {
+            frequencySlider.onValueChanged.AddListener(
+                ballGenerator.SetLaunchInterval
+            );
+        }
+
+        // Conecta los botones de inicio y parada.
         if (startButton != null)
-            startButton.onClick.AddListener(StartGame);
+        {
+            startButton.onClick.AddListener(
+                ballGenerator.StartGeneration
+            );
+        }
 
         if (endButton != null)
-            endButton.onClick.AddListener(StopGame);
+        {
+            endButton.onClick.AddListener(
+                ballGenerator.StopGeneration
+            );
+        }
 
+        // Conecta los botones de dificultad.
         if (easyButton != null)
+        {
             easyButton.onClick.AddListener(SelectEasy);
+        }
 
         if (normalButton != null)
+        {
             normalButton.onClick.AddListener(SelectNormal);
+        }
 
         if (hardButton != null)
-            hardButton.onClick.AddListener(SelectHard);
-
-        if (originSlider != null)
         {
-            originSlider.minValue = 1;
-            originSlider.maxValue = 3;
-            originSlider.wholeNumbers = true;
-
-            originSlider.onValueChanged.AddListener(
-                OnOriginChanged
-            );
-
-            OnOriginChanged(originSlider.value);
+            hardButton.onClick.AddListener(SelectHard);
         }
-    }
 
-    private void StartGame()
-    {
-        if (ballGenerator == null) return;
+        // Configuración inicial: Easy.
+        SelectEasy();
 
+        // Comienza la generación automáticamente.
         ballGenerator.StartGeneration();
     }
 
-    private void StopGame()
+    public void SelectEasy()
     {
-        if (ballGenerator == null) return;
-
-        ballGenerator.StopGeneration();
+        ApplyDifficulty(1, 3f);
     }
 
-    private void SelectEasy()
+    public void SelectNormal()
     {
-        if (ballGenerator == null) return;
-
-        ballGenerator.SetEasy();
+        ApplyDifficulty(2, 1.8f);
     }
 
-    private void SelectNormal()
+    public void SelectHard()
     {
-        if (ballGenerator == null) return;
-
-        ballGenerator.SetNormal();
+        ApplyDifficulty(3, 1f);
     }
 
-    private void SelectHard()
+    // Actualiza los sliders y aplica los valores al generador.
+    private void ApplyDifficulty(int generators, float interval)
     {
-        if (ballGenerator == null) return;
+        if (generatorsSlider != null)
+        {
+            generatorsSlider.value = generators;
+        }
 
-        ballGenerator.SetHard();
-    }
+        if (frequencySlider != null)
+        {
+            frequencySlider.value = interval;
+        }
 
-    private void OnOriginChanged(float value)
-    {
-        if (ballGenerator == null) return;
-        ballGenerator.SetSelectedOrigin(value);
-        UpdateOriginLabels(value);
-    }
-
-    private void UpdateOriginLabels(float selectedOrigin)
-    {
-        if (origin1LabelGenerador != null)
-            origin1LabelGenerador.color = selectedOrigin == 1
-                ? selectedColor : normalColor;
-
-        if (origin2LabelGenerador != null)
-            origin2LabelGenerador.color = selectedOrigin == 2
-                ? selectedColor : normalColor;
-
-        if (origin3LabelGenerador != null)
-            origin3LabelGenerador.color = selectedOrigin == 3
-                ? selectedColor : normalColor;
+        // Aplicación explícita para no depender de los eventos del slider.
+        ballGenerator.SetNumberOfActiveGenerators(generators);
+        ballGenerator.SetLaunchInterval(interval);
     }
 }

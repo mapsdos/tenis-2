@@ -13,76 +13,73 @@ public class BallGeneratorScript : MonoBehaviour
     public Transform origin2;
     public Transform origin3;
 
-    [Header("Dificultad")]
+    [Header("Intervalos por dificultad (segundos)")]
     public float easyInterval = 3f;
-    public float normalInterval = 1.5f;
-    public float hardInterval = 0.8f;
+    public float normalInterval = 1.8f;
+    public float hardInterval = 1f;
 
-    private float targetTime;
-    private float counter;
-    private int difficulty = 0;
-    private int selectedOrigin = 0;
+    [Header("Configuración actual")]
+    [SerializeField, Range(1, 3)]
+    private int numberOfActiveGenerators = 1;
+
+    [SerializeField]
+    private float targetTime = 3f;
+
+    private float counter = 0f;
     private bool isRunning = false;
 
-    // Empieza siempre en dificultad fácil.
-    public void StartGeneration()
-    {
-        SetDifficulty(0);
-        counter = 0f;
-        isRunning = true;
-    }
-
-    // Detiene inmediatamente los nuevos lanzamientos.
-    public void StopGeneration()
-    {
-        isRunning = false;
-        counter = 0f;
-    }
-
+    // Configuraciones predefinidas de dificultad.
     public void SetEasy()
     {
-        SetDifficulty(0);
+        SetDifficulty(1, easyInterval);
     }
 
     public void SetNormal()
     {
-        SetDifficulty(1);
+        SetDifficulty(2, normalInterval);
     }
 
     public void SetHard()
     {
-        SetDifficulty(2);
+        SetDifficulty(3, hardInterval);
     }
 
-    private void SetDifficulty(int newDifficulty)
+    private void SetDifficulty(int generators, float interval)
     {
-        difficulty = newDifficulty;
+        numberOfActiveGenerators = Mathf.Clamp(generators, 1, 3);
+        targetTime = Mathf.Max(0.1f, interval);
 
-        switch (difficulty)
-        {
-            case 0:
-                targetTime = easyInterval;
-                break;
-
-            case 1:
-                targetTime = normalInterval;
-                break;
-
-            case 2:
-                targetTime = hardInterval;
-                break;
-        }
-
-        // Si ya está funcionando, aplica la nueva frecuencia.
+        // Reinicia el contador para aplicar la nueva configuración.
         counter = targetTime;
     }
 
-    // El Slider selecciona el punto inicial: 1, 2 o 3.
-    public void SetSelectedOrigin(float sliderValue)
+    // Permite que el slider cambie el número de generadores activos.
+    public void SetNumberOfActiveGenerators(float value)
     {
-        selectedOrigin = Mathf.Clamp(
-            Mathf.RoundToInt(sliderValue) - 1, 0, 2
+        numberOfActiveGenerators = Mathf.Clamp(
+            Mathf.RoundToInt(value), 1, 3
         );
+    }
+
+    // Permite que el slider cambie el intervalo entre pelotas.
+    public void SetLaunchInterval(float interval)
+    {
+        targetTime = Mathf.Max(0.1f, interval);
+        counter = Mathf.Min(counter, targetTime);
+    }
+
+    // Inicia la generación de pelotas.
+    public void StartGeneration()
+    {
+        counter = 0f;
+        isRunning = true;
+    }
+
+    // Detiene los nuevos lanzamientos.
+    public void StopGeneration()
+    {
+        isRunning = false;
+        counter = 0f;
     }
 
     private void Update()
@@ -99,22 +96,36 @@ public class BallGeneratorScript : MonoBehaviour
         }
     }
 
+    // Elige aleatoriamente uno de los generadores activos.
     private void SpawnBalls()
     {
-        // La dificultad determina cuántos puntos participan.
-        int numberOfOrigins = difficulty + 1;
-
         Transform[] origins = { origin1, origin2, origin3 };
 
-        for (int i = 0; i < numberOfOrigins; i++)
-        {
-            // El Slider indica desde qué punto empezamos.
-            int index = (selectedOrigin + i) % origins.Length;
-            Transform spawn = origins[index];
+        // Construye la lista de generadores que realmente existen.
+        Transform[] activeOrigins = new Transform[numberOfActiveGenerators];
+        int availableCount = 0;
 
-            if (spawn != null)
-                ThrowBall(spawn.position);
+        for (int i = 0; i < numberOfActiveGenerators; i++)
+        {
+            if (origins[i] != null)
+            {
+                activeOrigins[availableCount] = origins[i];
+                availableCount++;
+            }
         }
+
+        if (availableCount == 0)
+        {
+            Debug.LogWarning(
+                "BallGenerator: no hay generadores activos asignados."
+            );
+            return;
+        }
+
+        int index = Random.Range(0, availableCount);
+        Transform selectedGenerator = activeOrigins[index];
+
+        ThrowBall(selectedGenerator.position);
     }
 
     private void ThrowBall(Vector3 origin)
