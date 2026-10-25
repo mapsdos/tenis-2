@@ -1,6 +1,7 @@
 ﻿
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class ControlStationUI : MonoBehaviour
 {
@@ -14,6 +15,15 @@ public class ControlStationUI : MonoBehaviour
     public Button normalButton;
     public Button hardButton;
     public Slider originSlider;
+
+    [Header("Etiquetas de los orígenes")]
+    public TMP_Text origin1LabelGenerador;
+    public TMP_Text origin2LabelGenerador;
+    public TMP_Text origin3LabelGenerador;
+
+    [Header("Colores")]
+    public Color selectedColor = new Color32(0, 191, 255, 255); // Azul
+    public Color normalColor = new Color32(255, 255, 255, 255); // Blanco
 
     private void Start()
     {
@@ -84,7 +94,22 @@ public class ControlStationUI : MonoBehaviour
     private void OnOriginChanged(float value)
     {
         if (ballGenerator == null) return;
-
         ballGenerator.SetSelectedOrigin(value);
+        UpdateOriginLabels(value);
+    }
+
+    private void UpdateOriginLabels(float selectedOrigin)
+    {
+        if (origin1LabelGenerador != null)
+            origin1LabelGenerador.color = selectedOrigin == 1
+                ? selectedColor : normalColor;
+
+        if (origin2LabelGenerador != null)
+            origin2LabelGenerador.color = selectedOrigin == 2
+                ? selectedColor : normalColor;
+
+        if (origin3LabelGenerador != null)
+            origin3LabelGenerador.color = selectedOrigin == 3
+                ? selectedColor : normalColor;
     }
 }
