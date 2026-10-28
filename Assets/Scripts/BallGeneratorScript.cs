@@ -15,6 +15,8 @@ public class BallGeneratorScript : MonoBehaviour
     private void throwBall(Vector3 origin)
     {
         GameObject ball = Instantiate(this.ball, origin, Quaternion.identity);
+        if (ball.GetComponent<BallScoreScript>() == null)
+            ball.AddComponent<BallScoreScript>();
         Destroy(ball, 10f);
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb != null)
@@ -31,9 +33,12 @@ public class BallGeneratorScript : MonoBehaviour
     {
         Bounds b = rivalField.bounds;
         return new Vector3(
-            UnityEngine.Random.Range(b.min.x, b.max.x),
+            b.center.x,
             b.center.y,
-            UnityEngine.Random.Range(b.min.z, b.max.z)
+            b.center.z
+            //UnityEngine.Random.Range(b.min.x, b.max.x),
+            //b.center.y,
+            //UnityEngine.Random.Range(b.min.z, b.max.z)
         );
     }
 
