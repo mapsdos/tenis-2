@@ -8,8 +8,8 @@ public class RestrictGrabToX : MonoBehaviour
     public XRGrabInteractable grabInteractable;
 
     [Header("Limites del eje X (coordenadas del mundo)")]
-    public float minX = -3f;
-    public float maxX = 3f;
+    public float minX = -4f;
+    public float maxX = 1.5f;
 
     private bool wasGrabbed;
     private float lockedY;
