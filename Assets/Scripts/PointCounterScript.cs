@@ -15,8 +15,8 @@ public class PointCounterScript : MonoBehaviour
             return;
 
         ballScore.hasScored = true;
-        int currentPoints = int.Parse(counter.text);
-        currentPoints++;
-        counter.text = currentPoints.ToString();
+        //int currentPoints = int.Parse(counter.text);
+        //currentPoints++;
+        //counter.text = currentPoints.ToString();
     }
 }
