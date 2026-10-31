@@ -19,10 +19,10 @@ public class ControlStationUI : MonoBehaviour
     public Slider generatorsSlider;
     public Slider frequencySlider;
 
+    //gris si no están apretats i blau si ho estan
     private static readonly Color UnselectedColor =
         new Color(0.14509805f, 0.15686275f, 0.1764706f, 1f);
-    private static readonly Color SelectedColor =
-        new Color(0f, 0.7490196f, 1f, 1f);
+    private static readonly Color ActiveColor = new Color32(0x00, 0xBF, 0xFF, 0xFF);
 
     private void Start()
     {
@@ -34,7 +34,6 @@ public class ControlStationUI : MonoBehaviour
             return;
         }
 
-        // Conecta los sliders con el generador.
         if (generatorsSlider != null)
         {
             generatorsSlider.onValueChanged.AddListener(
@@ -60,7 +59,6 @@ public class ControlStationUI : MonoBehaviour
             endButton.onClick.AddListener(OnStopPressed);
         }
 
-        // Conecta los botones de dificultad.
         if (easyButton != null)
         {
             easyButton.onClick.AddListener(SelectEasy);
@@ -76,7 +74,6 @@ public class ControlStationUI : MonoBehaviour
             hardButton.onClick.AddListener(SelectHard);
         }
 
-        // Configuración inicial: Easy + generación en marcha.
         SelectEasy();
         OnStartPressed();
     }
@@ -111,7 +108,6 @@ public class ControlStationUI : MonoBehaviour
         HighlightDifficulty(hardButton);
     }
 
-    // Actualiza los sliders y aplica los valores al generador.
     private void ApplyDifficulty(int generators, float interval)
     {
         if (generatorsSlider != null)
@@ -147,10 +143,13 @@ public class ControlStationUI : MonoBehaviour
         if (button == null || button.targetGraphic == null)
             return;
 
-        Color color = selected ? SelectedColor : UnselectedColor;
+        Color color = selected ? ActiveColor : UnselectedColor;
 
         ColorBlock colors = button.colors;
         colors.normalColor = color;
+        colors.highlightedColor = color;
+        colors.pressedColor = color;
+        colors.selectedColor = color;
         button.colors = colors;
         button.targetGraphic.color = color;
     }
