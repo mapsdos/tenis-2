@@ -142,6 +142,9 @@ public class BallGeneratorScript : MonoBehaviour
             ball, origin, Quaternion.identity
         );
 
+        if (newBall.GetComponent<BallScoreScript>() == null)
+            newBall.AddComponent<BallScoreScript>();
+
         Destroy(newBall, 10f);
 
         Rigidbody ballRb = newBall.GetComponent<Rigidbody>();
