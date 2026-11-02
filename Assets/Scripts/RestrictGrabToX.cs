@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
@@ -53,7 +53,9 @@ public class RestrictGrabToX : XRBaseGrabTransformer
 
         if (cachedBody != null)
         {
+            // Cinemático en reposo: las pelotas no pueden empujar el generador.
             cachedBody.useGravity = false;
+            cachedBody.isKinematic = true;
             cachedBody.constraints =
                 RigidbodyConstraints.FreezePositionY
                 | RigidbodyConstraints.FreezePositionZ
@@ -100,6 +102,14 @@ public class RestrictGrabToX : XRBaseGrabTransformer
         // Durante el agarre el transformer ya aplica los límites.
         if (cachedGrab != null && cachedGrab.isSelected)
             return;
+
+        // Fuera del agarre, cinemático para que nada lo empuje.
+        if (cachedBody != null && !cachedBody.isKinematic)
+        {
+            cachedBody.linearVelocity = Vector3.zero;
+            cachedBody.angularVelocity = Vector3.zero;
+            cachedBody.isKinematic = true;
+        }
 
         ClampTransformNow();
     }
