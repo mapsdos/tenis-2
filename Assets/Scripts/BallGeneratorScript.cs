@@ -138,13 +138,30 @@ public class BallGeneratorScript : MonoBehaviour
             return;
         }
 
+        Vector3 target = RandomPointInRivalField();
+
+        // Si no hay trayectoria válida, no spawnea una pelota quieta.
+        if (!TryGetLaunchVelocity(
+            origin, target, launchAngle, out Vector3 velocity))
+        {
+            Debug.LogWarning(
+                "BallGenerator: trayectoria inválida, se omite el lanzamiento."
+            );
+            return;
+        }
+
         GameObject newBall = Instantiate(
             ball, origin, Quaternion.identity
         );
+        newBall.tag = "Ball";
 
-        if (newBall.GetComponent<BallScoreScript>() == null)
-            newBall.AddComponent<BallScoreScript>();
+        BallScoreScript score =
+            newBall.GetComponent<BallScoreScript>();
+        if (score == null)
+            score = newBall.AddComponent<BallScoreScript>();
+        score.hasScored = false;
 
+        IgnoreCollisionsWithGenerators(newBall);
         Destroy(newBall, 10f);
 
         Rigidbody ballRb = newBall.GetComponent<Rigidbody>();
@@ -152,15 +169,51 @@ public class BallGeneratorScript : MonoBehaviour
         if (ballRb == null)
         {
             Debug.LogWarning("La pelota no tiene Rigidbody.");
+            Destroy(newBall);
             return;
         }
 
-        Vector3 target = RandomPointInRivalField();
+        // Si la pelota plantilla está agarrada, el Instantiate copia
+        // isKinematic=true y las nuevas salen estáticas.
+        ballRb.isKinematic = false;
+        ballRb.useGravity = true;
+        ballRb.collisionDetectionMode =
+            CollisionDetectionMode.ContinuousDynamic;
+        ballRb.angularVelocity = Vector3.zero;
+        ballRb.linearVelocity = velocity;
+    }
 
-        if (TryGetLaunchVelocity(
-            origin, target, launchAngle, out Vector3 velocity))
+    private void IgnoreCollisionsWithGenerators(GameObject newBall)
+    {
+        Collider[] ballColliders =
+            newBall.GetComponentsInChildren<Collider>();
+
+        Transform[] origins = { origin1, origin2, origin3 };
+        for (int i = 0; i < origins.Length; i++)
         {
-            ballRb.linearVelocity = velocity;
+            if (origins[i] == null)
+                continue;
+
+            Collider[] generatorColliders =
+                origins[i].GetComponentsInChildren<Collider>();
+
+            for (int g = 0; g < generatorColliders.Length; g++)
+            {
+                if (generatorColliders[g] == null
+                    || generatorColliders[g].isTrigger)
+                    continue;
+
+                for (int b = 0; b < ballColliders.Length; b++)
+                {
+                    if (ballColliders[b] == null
+                        || ballColliders[b].isTrigger)
+                        continue;
+
+                    Physics.IgnoreCollision(
+                        ballColliders[b], generatorColliders[g], true
+                    );
+                }
+            }
         }
     }
 
