@@ -13,10 +13,13 @@ public class BallGeneratorScript : MonoBehaviour
     public Transform origin2;
     public Transform origin3;
 
-    [Header("Intervalos por dificultad (segundos)")]
-    public float easyInterval = 3f;
-    public float normalInterval = 1.8f;
-    public float hardInterval = 1f;
+    [Header("Velocidad de lanzamiento por dificultad")]
+    [Tooltip("Multiplicador de velocidad de la pelota (fácil).")]
+    public float easySpeed = 0.75f;
+    [Tooltip("Multiplicador de velocidad de la pelota (normal).")]
+    public float normalSpeed = 1f;
+    [Tooltip("Multiplicador de velocidad de la pelota (difícil).")]
+    public float hardSpeed = 1.35f;
 
     [Header("Configuración actual")]
     [SerializeField, Range(1, 3)]
@@ -25,32 +28,32 @@ public class BallGeneratorScript : MonoBehaviour
     [SerializeField]
     private float targetTime = 3f;
 
+    [SerializeField]
+    private float launchSpeedMultiplier = 0.75f;
+
     private float counter = 0f;
     private bool isRunning = false;
 
-    // Configuraciones predefinidas de dificultad.
+    // Configuraciones predefinidas de dificultad (velocidad de pelota).
     public void SetEasy()
     {
-        SetDifficulty(1, easyInterval);
+        SetLaunchSpeed(easySpeed);
     }
 
     public void SetNormal()
     {
-        SetDifficulty(2, normalInterval);
+        SetLaunchSpeed(normalSpeed);
     }
 
     public void SetHard()
     {
-        SetDifficulty(3, hardInterval);
+        SetLaunchSpeed(hardSpeed);
     }
 
-    private void SetDifficulty(int generators, float interval)
+    // Permite que el panel cambie la velocidad de lanzamiento.
+    public void SetLaunchSpeed(float speedMultiplier)
     {
-        numberOfActiveGenerators = Mathf.Clamp(generators, 1, 3);
-        targetTime = Mathf.Max(0.1f, interval);
-
-        // Reinicia el contador para aplicar la nueva configuración.
-        counter = targetTime;
+        launchSpeedMultiplier = Mathf.Max(0.1f, speedMultiplier);
     }
 
     // Permite que el slider cambie el número de generadores activos.
@@ -180,7 +183,7 @@ public class BallGeneratorScript : MonoBehaviour
         ballRb.collisionDetectionMode =
             CollisionDetectionMode.ContinuousDynamic;
         ballRb.angularVelocity = Vector3.zero;
-        ballRb.linearVelocity = velocity;
+        ballRb.linearVelocity = velocity * launchSpeedMultiplier;
     }
 
     private void IgnoreCollisionsWithGenerators(GameObject newBall)
