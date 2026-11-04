@@ -33,6 +33,7 @@ TagManager:
   - QDSUIToggleCheckboxRadio
   - QDSUIToggleThumbnail
   - Ball
+  - Racket
   layers:
   - Default
   - TransparentFX
@@ -42,7 +43,7 @@ TagManager:
   - UI
   - Player
   - PlayerWalls
-  - 
+  - Grab
   - 
   - 
   - 

@@ -1,33 +1,31 @@
 ﻿using UnityEngine;
 using UnityEngine.XR;
 
-public class DoubleSwipeDash : MonoBehaviour
+public class SwipeDash : MonoBehaviour
 {
     [Header("Referencias")]
     public Transform headCamera;
 
     [Header("Configuracion del movimiento")]
-    public float dashDistance = 1.5f;
+    public float dashDistance = 8f;
     public float swipeSpeedThreshold = 1.2f;
     public float releaseSpeedThreshold = 0.35f;
-
-    [Header("Deteccion del doble gesto")]
-    public float doubleSwipeWindow = 1.3f;
-    public float dashCooldown = 0.7f;
+    public float wallCheckRadius = 0.2f;
+    public float wallSkin = 0.15f;
+    public LayerMask wallMask;
 
     private InputDevice leftController;
 
     private bool swipeArmed = true;
-    private int swipeCount = 0;
-    private int swipeDirection = 0;
-
-    private float lastSwipeTime = -10f;
-    private float lastDashTime = -10f;
 
     private void Start()
     {
         if (headCamera == null && Camera.main != null)
             headCamera = Camera.main.transform;
+
+        // Por defecto solo choca con la layer PlayerWalls (7).
+        if (wallMask.value == 0)
+            wallMask = 1 << 7;
 
         FindLeftController();
     }
@@ -78,43 +76,26 @@ public class DoubleSwipeDash : MonoBehaviour
         // Direccion: -1 izquierda, +1 derecha.
         int direction = lateralSpeed < 0f ? -1 : 1;
 
-        // Si ha pasado demasiado tiempo, empezar de nuevo.
-        if (Time.time - lastSwipeTime > doubleSwipeWindow)
-        {
-            swipeCount = 0;
-            swipeDirection = 0;
-        }
-
-        // Los dos gestos deben ser en la misma direccion.
-        if (swipeCount == 0 || direction != swipeDirection)
-        {
-            swipeCount = 1;
-            swipeDirection = direction;
-        }
-        else
-        {
-            swipeCount++;
-        }
-
-        lastSwipeTime = Time.time;
-
-        // Dos gestos en la misma direccion.
-        if (swipeCount >= 2 &&
-            Time.time - lastDashTime >= dashCooldown)
-        {
-            Dash(direction, right);
-
-            lastDashTime = Time.time;
-            swipeCount = 0;
-            swipeDirection = 0;
-        }
+        Dash(direction, right);
     }
 
     private void Dash(int direction, Vector3 right)
     {
-        Vector3 displacement = right * direction * dashDistance;
+        Vector3 dir = right * direction;
+        float distance = dashDistance;
 
-        // Desplazamiento horizontal de 1,5 metros.
-        transform.position += displacement;
+        if (Physics.SphereCast(
+            headCamera.position,
+            wallCheckRadius,
+            dir,
+            out RaycastHit hit,
+            dashDistance,
+            wallMask,
+            QueryTriggerInteraction.Ignore))
+        {
+            distance = Mathf.Max(0f, hit.distance - wallSkin);
+        }
+
+        transform.position += dir * distance;
     }
 }

@@ -35,7 +35,7 @@ public class ControlStationUI : MonoBehaviour
     private Quaternion racketSpawnRotation;
     private Vector3 racketSpawnScale;
     private Transform racketSpawnParent;
-    private string racketName = "blue racket";
+    private string racketName = "RacquetMario";
     private Coroutine regenerateFlashRoutine;
 
     private void Start()
@@ -55,6 +55,9 @@ public class ControlStationUI : MonoBehaviour
                 generatorsSlider.onValueChanged.AddListener(
                     ballGenerator.SetNumberOfActiveGenerators
                 );
+                ballGenerator.SetNumberOfActiveGenerators(
+                    generatorsSlider.value
+                );
             }
 
             if (frequencySlider != null)
@@ -62,6 +65,7 @@ public class ControlStationUI : MonoBehaviour
                 frequencySlider.onValueChanged.AddListener(
                     ballGenerator.SetLaunchInterval
                 );
+                ballGenerator.SetLaunchInterval(frequencySlider.value);
             }
         }
 
@@ -83,10 +87,37 @@ public class ControlStationUI : MonoBehaviour
         if (hardButton != null)
             hardButton.onClick.AddListener(SelectHard);
 
+        SetupUiRaySlider(generatorsSlider);
+        SetupUiRaySlider(frequencySlider);
+
         if (ballGenerator != null)
         {
             SelectEasy();
-            OnStartPressed();
+            OnStopPressed();
+        }
+    }
+
+    // UI + rayo: select en barra/handle y arrastrar; el drag se mantiene al pulsar.
+    private static void SetupUiRaySlider(Slider slider)
+    {
+        if (slider == null)
+            return;
+
+        slider.interactable = true;
+
+        if (slider.handleRect != null
+            && slider.handleRect.TryGetComponent(out Graphic handleGraphic))
+        {
+            handleGraphic.raycastTarget = true;
+            handleGraphic.raycastPadding = new Vector4(30f, 30f, 30f, 30f);
+        }
+
+        Transform background = slider.transform.Find("Background");
+        if (background != null
+            && background.TryGetComponent(out Graphic backgroundGraphic))
+        {
+            backgroundGraphic.raycastTarget = true;
+            backgroundGraphic.raycastPadding = new Vector4(0f, 24f, 0f, 24f);
         }
     }
 
@@ -152,6 +183,7 @@ public class ControlStationUI : MonoBehaviour
             racketSpawnParent
         );
         racket.name = racketName;
+        racket.tag = "Racket";
         racket.transform.localScale = racketSpawnScale;
         racket.SetActive(true);
 
@@ -177,35 +209,23 @@ public class ControlStationUI : MonoBehaviour
 
     public void SelectEasy()
     {
-        ApplyDifficulty(1, 3f);
+        if (ballGenerator != null)
+            ballGenerator.SetEasy();
         HighlightDifficulty(easyButton);
     }
 
     public void SelectNormal()
     {
-        ApplyDifficulty(2, 1.8f);
+        if (ballGenerator != null)
+            ballGenerator.SetNormal();
         HighlightDifficulty(normalButton);
     }
 
     public void SelectHard()
     {
-        ApplyDifficulty(3, 1f);
+        if (ballGenerator != null)
+            ballGenerator.SetHard();
         HighlightDifficulty(hardButton);
-    }
-
-    private void ApplyDifficulty(int generators, float interval)
-    {
-        if (ballGenerator == null)
-            return;
-
-        if (generatorsSlider != null)
-            generatorsSlider.value = generators;
-
-        if (frequencySlider != null)
-            frequencySlider.value = interval;
-
-        ballGenerator.SetNumberOfActiveGenerators(generators);
-        ballGenerator.SetLaunchInterval(interval);
     }
 
     private void HighlightRunControl(Button selected)
