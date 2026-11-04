@@ -1,26 +1,31 @@
 ﻿using UnityEngine;
 using UnityEngine.XR;
 
-public class DoubleSwipeDash : MonoBehaviour
+public class SwipeDash : MonoBehaviour
 {
     [Header("Referencias")]
     public Transform headCamera;
 
     [Header("Configuracion del movimiento")]
-    public float dashDistance = 2f;
+    public float dashDistance = 8f;
     public float swipeSpeedThreshold = 1.2f;
     public float releaseSpeedThreshold = 0.35f;
+    public float wallCheckRadius = 0.2f;
+    public float wallSkin = 0.15f;
+    public LayerMask wallMask;
 
     private InputDevice leftController;
 
     private bool swipeArmed = true;
-    private int swipeCount = 0;
-    private int swipeDirection = 0;
 
     private void Start()
     {
         if (headCamera == null && Camera.main != null)
             headCamera = Camera.main.transform;
+
+        // Por defecto solo choca con la layer PlayerWalls (7).
+        if (wallMask.value == 0)
+            wallMask = 1 << 7;
 
         FindLeftController();
     }
@@ -76,9 +81,21 @@ public class DoubleSwipeDash : MonoBehaviour
 
     private void Dash(int direction, Vector3 right)
     {
-        Vector3 displacement = right * direction * dashDistance;
+        Vector3 dir = right * direction;
+        float distance = dashDistance;
 
-        // Desplazamiento horizontal de 1,5 metros.
-        transform.position += displacement;
+        if (Physics.SphereCast(
+            headCamera.position,
+            wallCheckRadius,
+            dir,
+            out RaycastHit hit,
+            dashDistance,
+            wallMask,
+            QueryTriggerInteraction.Ignore))
+        {
+            distance = Mathf.Max(0f, hit.distance - wallSkin);
+        }
+
+        transform.position += dir * distance;
     }
 }

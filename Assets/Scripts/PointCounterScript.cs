@@ -10,8 +10,15 @@ public class PointCounterScript : MonoBehaviour
         if (!other.CompareTag("Ball"))
             return;
 
-        BallScoreScript ballScore = other.GetComponent<BallScoreScript>();
+        BallScoreScript ballScore =
+            other.GetComponent<BallScoreScript>()
+            ?? other.GetComponentInParent<BallScoreScript>();
+
         if (ballScore == null || ballScore.hasScored)
+            return;
+
+        // Solo cuenta si la raqueta tocó la pelota antes.
+        if (!ballScore.wasHitByRacket)
             return;
 
         ballScore.hasScored = true;

@@ -35,7 +35,7 @@ public class ControlStationUI : MonoBehaviour
     private Quaternion racketSpawnRotation;
     private Vector3 racketSpawnScale;
     private Transform racketSpawnParent;
-    private string racketName = "blue racket";
+    private string racketName = "RacquetMario";
     private Coroutine regenerateFlashRoutine;
 
     private void Start()
@@ -55,6 +55,9 @@ public class ControlStationUI : MonoBehaviour
                 generatorsSlider.onValueChanged.AddListener(
                     ballGenerator.SetNumberOfActiveGenerators
                 );
+                ballGenerator.SetNumberOfActiveGenerators(
+                    generatorsSlider.value
+                );
             }
 
             if (frequencySlider != null)
@@ -62,6 +65,7 @@ public class ControlStationUI : MonoBehaviour
                 frequencySlider.onValueChanged.AddListener(
                     ballGenerator.SetLaunchInterval
                 );
+                ballGenerator.SetLaunchInterval(frequencySlider.value);
             }
         }
 
@@ -179,6 +183,7 @@ public class ControlStationUI : MonoBehaviour
             racketSpawnParent
         );
         racket.name = racketName;
+        racket.tag = "Racket";
         racket.transform.localScale = racketSpawnScale;
         racket.SetActive(true);
 

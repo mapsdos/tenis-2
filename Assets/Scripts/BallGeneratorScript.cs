@@ -6,54 +6,53 @@ public class BallGeneratorScript : MonoBehaviour
     [Header("Pelotas")]
     public GameObject ball;
     public BoxCollider rivalField;
-    public float launchAngle = 40f;
 
     [Header("Puntos de salida")]
     public Transform origin1;
     public Transform origin2;
     public Transform origin3;
 
-    [Header("Velocidad de lanzamiento por dificultad")]
-    [Tooltip("Multiplicador de velocidad de la pelota (fácil).")]
-    public float easySpeed = 0.75f;
-    [Tooltip("Multiplicador de velocidad de la pelota (normal).")]
-    public float normalSpeed = 1f;
-    [Tooltip("Multiplicador de velocidad de la pelota (difícil).")]
-    public float hardSpeed = 1.35f;
+    [Header("Ángulo de lanzamiento por dificultad (grados)")]
+    [Tooltip("Ángulo alto = pelota más lenta.")]
+    public float easyLaunchAngle = 50f;
+    [Tooltip("Ángulo medio.")]
+    public float normalLaunchAngle = 40f;
+    [Tooltip("Ángulo bajo = pelota más rápida.")]
+    public float hardLaunchAngle = 28f;
 
     [Header("Configuración actual")]
     [SerializeField, Range(1, 3)]
-    private int numberOfActiveGenerators = 1;
+    private int numberOfActiveGenerators = 3;
 
     [SerializeField]
     private float targetTime = 3f;
 
     [SerializeField]
-    private float launchSpeedMultiplier = 0.75f;
+    private float launchAngle = 50f;
 
     private float counter = 0f;
     private bool isRunning = false;
 
-    // Configuraciones predefinidas de dificultad (velocidad de pelota).
+    // Configuraciones predefinidas de dificultad (velocidad vía ángulo).
     public void SetEasy()
     {
-        SetLaunchSpeed(easySpeed);
+        SetLaunchAngle(easyLaunchAngle);
     }
 
     public void SetNormal()
     {
-        SetLaunchSpeed(normalSpeed);
+        SetLaunchAngle(normalLaunchAngle);
     }
 
     public void SetHard()
     {
-        SetLaunchSpeed(hardSpeed);
+        SetLaunchAngle(hardLaunchAngle);
     }
 
-    // Permite que el panel cambie la velocidad de lanzamiento.
-    public void SetLaunchSpeed(float speedMultiplier)
+    // Ángulo más bajo = trayectoria más rápida al mismo punto de impacto.
+    public void SetLaunchAngle(float angleDegrees)
     {
-        launchSpeedMultiplier = Mathf.Max(0.1f, speedMultiplier);
+        launchAngle = Mathf.Clamp(angleDegrees, 15f, 70f);
     }
 
     // Permite que el slider cambie el número de generadores activos.
@@ -74,6 +73,8 @@ public class BallGeneratorScript : MonoBehaviour
     // Inicia la generación de pelotas.
     public void StartGeneration()
     {
+        // Evita ráfagas si el intervalo quedó a 0 en la escena.
+        targetTime = Mathf.Max(0.1f, targetTime);
         counter = 0f;
         isRunning = true;
     }
@@ -95,7 +96,7 @@ public class BallGeneratorScript : MonoBehaviour
         if (counter <= 0f)
         {
             SpawnBalls();
-            counter = targetTime;
+            counter = Mathf.Max(0.1f, targetTime);
         }
     }
 
@@ -163,9 +164,10 @@ public class BallGeneratorScript : MonoBehaviour
         if (score == null)
             score = newBall.AddComponent<BallScoreScript>();
         score.hasScored = false;
+        score.wasHitByRacket = false;
 
         IgnoreCollisionsWithGenerators(newBall);
-        Destroy(newBall, 10f);
+        Destroy(newBall, 8f);
 
         Rigidbody ballRb = newBall.GetComponent<Rigidbody>();
 
@@ -183,7 +185,7 @@ public class BallGeneratorScript : MonoBehaviour
         ballRb.collisionDetectionMode =
             CollisionDetectionMode.ContinuousDynamic;
         ballRb.angularVelocity = Vector3.zero;
-        ballRb.linearVelocity = velocity * launchSpeedMultiplier;
+        ballRb.linearVelocity = velocity;
     }
 
     private void IgnoreCollisionsWithGenerators(GameObject newBall)
